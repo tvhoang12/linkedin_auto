@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><Xpaths>
+    <!-- XPaths cho đăng bài -->
+    <PostBox>/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div[2]/div/div/div/div[2]/div/div[2]/div/div/div/div[1]/div/div[1]/span</PostBox>
+    <PostArea>//div[@role='textbox']</PostArea>
+    <PostButton>//div[@aria-label='Đăng' and @role='button']</PostButton>
+
+    <!-- XPaths cho đăng nhập -->
+    <EmailField>//*[@id="email"]</EmailField>
+    <PasswordField>//*[@id="pass"]</PasswordField>
+    <LoginButtonEn>//button[text()='Log in']</LoginButtonEn>
+    <LoginButtonVi>//button[text()='Đăng nhập']</LoginButtonVi>
+    <!-- XPaths cho reply comment -->
+    
+    <!-- XPaths cho nhóm -->
+    <GroupsTab>//a[@aria-label="Nhóm"]</GroupsTab>
+    <JoinedGroups>//a[@href="/groups/joins/?nav_source=tab" and @role="link"]</JoinedGroups>
+    <GroupList>//div[@aria-label='Danh sách nhóm' and @role='navigation']</GroupList>
+    <GroupLinks>//div[starts-with(@class, "x9f619 x1n2onr6 x1ja2u2z")]/a</GroupLinks>
+    <ClickGroup>(//a[@href="{href}" and @role="link"])[1]</ClickGroup>
+    <!-- XPaths cho popups -->
+    <LeavePagePopupVi>//div[@aria-label="Rời khỏi Trang" and @role="button"]</LeavePagePopupVi>
+    <LeavePagePopupEn>//div[@aria-label="Leave Page" and @role="button"]</LeavePagePopupEn>
+    <CloseAdPopupVi>//div[@aria-label='Đóng']</CloseAdPopupVi>
+    <CloseAdPopupEn>//div[@aria-label='Close']</CloseAdPopupEn>
+    
+    <!-- XPath nut thich -->
+    <LikeButton>//div[@aria-label="Thích" and @role="button"]</LikeButton>
+    <!-- XPath nut comment-->
+    <CommentButton>//div[@aria-label='Viết bình luận' and @role='button']</CommentButton>
+
+    <!-- XPaths cho feed và bài post -->
+    <GroupFeed>//div[@data-pagelet='GroupFeed']</GroupFeed>
+    <GroupPreview>//div[@aria-label="Bản xem trước nhóm" and @role="main"]</GroupPreview>
+    <PostsContainer>//*[contains(concat(' ', @class, ' '), 'x1yztbdb x1n2onr6 xh8yej3 x1ja2u2z')]</PostsContainer>
+    <ReplyButton>(//div[@role="button" and text()="Phản hồi"])[1]</ReplyButton>
+    <ReplyTextArea>//div[@aria-label="Viết phản hồi công khai…"]/p/span[2]</ReplyTextArea>
+    <CommentBox>//div[contains(@aria-label, "Trả lời dưới tên") or contains(@aria-label, "Bình luận dưới tên")]</CommentBox>
+    <CommentPublic>//div[@aria-label="Viết bình luận công khai…"]</CommentPublic>
+
+    <!-- XPaths cho hạn chế (Restricted) -->
+    <RestrictedPost>//div[@style='display: inline;']</RestrictedPost>
+    <RestrictedAll>//span[text()='Giờ bạn chưa dùng được tính năng này']</RestrictedAll>
+</Xpaths>
