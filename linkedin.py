@@ -1,6 +1,9 @@
+import csv
+from datetime import date
 import random
 from time import sleep
 import asyncio
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -9,15 +12,15 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
 from time import sleep
 from random import randint, randrange
 import time
 import threading
-from datetime import datetime
+import pandas as pd
 import logging
 import sys
 import pyodbc
-from database_interact import Log_FacebookBot
 import read_xpath
 
 options = webdriver.ChromeOptions()
@@ -26,38 +29,16 @@ options.add_experimental_option("prefs", prefs)
 options.add_argument("start-maximized")
 options.add_argument("--incognito")
 #browser = webdriver.Chrome(options=options)
-link = "https://www.linkedin.com/login"
-listAccount = ["Vietnamtopapp@gmail.com"]
-passwd = "Langnghiem@79"
+link = "https://www.linkedin.com/login/vi"
+listAccount = ["alphagamingisbest@gmail.com"]
+passwd = "Hoang@11204"
 lock = threading.Lock()
 # Thời gian bắt đầu
 start_time = time.time()
 # Thời gian chạy của vòng lặp (24 giờ = 86400 giây)
 loop_duration = 2 * 60
-
-def logFile(account, link, status, timeAcc):
-    with lock:
-        try:
-            with open("log.txt", "a") as file2:
-                file2.write("Account: "+account + "\n" + "Link: " +link+ "\n" + "Status: " + status + "\n" + "Time: " + timeAcc + "\n")
-        except FileNotFoundError:
-            print("File not found.")
-
-def openFile(href):
-    with lock:
-        try:
-            with open("check.txt", 'r') as file:
-                file_content = file.read()
-                if href not in file_content:
-                    with open("check.txt", "a") as file2:
-                        file2.write(href+"\n")
-                    print(f"Link {href} đã được chạy rồi")
-                    return True
-                else:
-                    return False
-        except FileNotFoundError:
-            print("File not found checkLink.")
-            return False
+# Từ khóa tìm kiếm nhóm
+searchKey = "gia sư"
 
 def create_content():
     quotes = [
@@ -89,100 +70,25 @@ def create_content():
     ]
     return random.choice(quotes)
 
-
-def post_to_facebook(browser):
-        # Tìm và nhấp vào ô "Bạn đang nghĩ gì?"
-        post_box = WebDriverWait(browser, 10).until(
-            EC.element_to_be_clickable((By.XPATH, read_xpath.PostBox))
-        )
-        post_box.click()
-
-        # Nhập nội dung bài viết từ create_content()
-        post_content = create_content()
-        post_area = WebDriverWait(browser, 15).until(
-            EC.presence_of_element_located((By.XPATH, read_xpath.PostArea))
-        )
-        post_area.send_keys(post_content)
-
-        # Đợi một chút trước khi đăng
-        time.sleep(10)
-
-        # Nhấn nút "Đăng"
-        post_button = WebDriverWait(browser, 10).until(
-            EC.element_to_be_clickable((By.XPATH, read_xpath.PostButton))
-        )
-        post_button.click()
-
-        print(f" Đã đăng bài: {post_content}")
-
-        time.sleep(5)
-
 def loginlinkedin(browser, link, account):
     browser.get(link)
     wait1 = WebDriverWait(browser, 30)  # Maximum wait time of 10 seconds
     username = wait1.until(EC.visibility_of_element_located((By.XPATH, read_xpath.EmailField)))
     sleep(randint(5, 7))
+
     username.send_keys(account)
-    #username.send_keys("saturnlle01@gmail.com")
     wait2 = WebDriverWait(browser, 30)  # Maximum wait time of 10 seconds
     password = wait2.until(EC.visibility_of_element_located((By.XPATH, read_xpath.PasswordField)))
     sleep(randint(5, 7))
     password.send_keys(passwd)
-    sleep(20)
-    try:
-        wait3 = WebDriverWait(browser, 30)  # Maximum wait time of 10 seconds
-        login = wait3.until(EC.element_to_be_clickable((By.XPATH, read_xpath.LoginButtonEn)))
-        sleep(randint(5, 7))
-        login.click()
-    except:
-        wait3 = WebDriverWait(browser, 30)  # Maximum wait time of 10 seconds
-        login = wait3.until(EC.element_to_be_clickable((By.XPATH, read_xpath.LoginButtonVi)))
-        sleep(randint(5, 7))
-        login.click()
+    sleep(randint(2, 5))
+
+    wait3 = WebDriverWait(browser, 30)  # Maximum wait time of 10 seconds
+    signin = wait3.until(EC.element_to_be_clickable((By.XPATH, read_xpath.LoginButton)))
+    sleep(randint(5, 7))
+    signin.click()
     #đợi 10s, có thể await
     sleep(randint(7, 12))
-
-
-    """
-    
-    # Duyệt tất cả các nhóm
-    wait4 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
-    clickGroup = wait4.until(EC.element_to_be_clickable((By.XPATH, read_xpath.GroupsTab)))
-    clickGroup.click()
-    sleep(5)
-    wait5 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
-    clickGroup = wait5.until(
-            EC.element_to_be_clickable((By.XPATH, read_xpath.JoinedGroups)))
-    clickGroup.click()
-    sleep(5)
-    # Cuộn xuống tìm tất cả thẻ
-    try:
-            print('access to scrollbar1')
-            i = 0
-            while i < 10:
-                # Cuộn xuống
-                browser.find_element(By.TAG_NAME, 'body').send_keys(Keys.END)
-                # Chờ một chút để trang cuộn xuống
-                print("xuống cuối1")
-                sleep(2)
-                i += 1
-    except:
-            print('cannot access to scrollbar1')
-
-    # Lấy tất cả các nhóm
-    print("div to 1")
-    wait = WebDriverWait(browser, 10)
-    elementTo = wait.until(
-            EC.visibility_of_element_located(
-                (By.XPATH, read_xpath.GroupList)))
-    print("div to 1 into")
-    browser.implicitly_wait(10)
-    element = elementTo.find_elements(By.XPATH, read_xpath.GroupLinks)
-    print(f"Tong so link: {len(element)}")
-    for i in element:
-        href = i.get_attribute("href")
-        print(f"ban oi: {href}")
-    """
 
 def scanUser(browser):
         wait4 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
@@ -328,9 +234,6 @@ def scanUser(browser):
             print(f"about_work_and_education {len(element)}")
             for iz in element:
                 print(iz.text)
-
-def messageOthers(browser):
-        print("messageOthers")
 
 def autoReply(browser):
         # Duyệt tất cả các nhóm
@@ -635,683 +538,88 @@ def autoReply(browser):
                             break
             ez+=1
 
-def autoComment(browser): #Hàm comment trong group đã Join
-    # Duyệt tất cả các nhóm
-    wait4 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
-    clickGroup = wait4.until(EC.element_to_be_clickable((By.XPATH, read_xpath.GroupsTab)))
-    clickGroup.click()
-    sleep(5)
-    wait5 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
-    clickGroup = wait5.until(
-        EC.element_to_be_clickable((By.XPATH, read_xpath.JoinedGroups)))
-    clickGroup.click()
-    sleep(5)
-    # Cuộn xuống tìm tất cả thẻ
-    try:
-        print('access to scrollbar1')
-        i = 0
-        while i < 10:
-            # Cuộn xuống
-            browser.find_element(By.TAG_NAME, 'body').send_keys(Keys.END)
-            # Chờ một chút để trang cuộn xuống
-            print("xuống cuối1")
-            sleep(2)
-            i += 1
-    except:
-        print('cannot access to scrollbar1')
+def autoComment(browser, comment):
+    sleep(10) #wait for authority
+    browser.get("https://www.linkedin.com/groups/")
+    href_links = browser.find_elements(By.XPATH, "//a[contains(@class, 'group-listing-item__title-link')]")
+    links = []  # Đổi tên biến từ 'link' thành 'links' để tránh bị ghi đè
 
-    # Lấy tất cả các nhóm
-    print("div to 1")
-    wait = WebDriverWait(browser, 10)
-    elementTo = wait.until(
-        EC.visibility_of_element_located(
-            (By.XPATH, read_xpath.GroupList)))
-    print("div to 1 into")
-    browser.implicitly_wait(10)
-    element = elementTo.find_elements(By.XPATH, read_xpath.GroupLinks)
-    print(f"Tong so link: {len(element)}")
-    for i in element:
-        href = i.get_attribute("href")
-        print(f"ban oi: {href}")
-    # Duyệt từng nhóm.
-    ez = 0
-    sleep(randint(5, 7))
-    for i in element:
-        if ez > 2:
+    for element in href_links:
+        links.append(str(element.get_attribute('href')))  # Thêm URL của mỗi nhóm vào danh sách 'links'
+
+    wait = WebDriverWait(browser, 30)
+    if not links:
+        print("you're not in any group, try to search and add some group")
+        return
+    else:
+        sleep(5)
+        # comment to post in groups
+        for group in links:
             try:
-                href = i.get_attribute("href")
-                print(f"ban oi: {href}")
-                # click từng link vào nhóm
-                wait6 = WebDriverWait(i, 30)  # Maximum wait time of 10 seconds
-                eachGroup = wait6.until(
-                    EC.element_to_be_clickable((By.XPATH, read_xpath.ClickGroup)))
-                eachGroup.click()
-                print('passsssssss1x')
-
-                # Check popup "Rời khỏi Trang"
-                try:
-                    browser.implicitly_wait(5)
-                    close = browser.find_element(By.XPATH,
-                                                    read_xpath.LeavePagePopupVi).click()
-                except:
-                    try:
-                        browser.implicitly_wait(5)
-                        close = browser.find_element(By.XPATH,
-                                                        read_xpath.LeavePagePopupEn).click()
-                    except:
-                        print("khong popup leavepage")
-
-                # dosomethings
-                sleep(randint(5, 10))
-                # Check popup "Quảng cáo"
-                try:
-                    browser.implicitly_wait(5)
-                    close = browser.find_element(By.XPATH,
-                                                    read_xpath.CloseAdPopupVi).click()
-                except:
-                    try:
-                        browser.implicitly_wait(5)
-                        close = browser.find_element(By.XPATH,
-                                                        read_xpath.CloseAdPopupEn).click()
-                    except:
-                        print("khong popup quangcao")
-                # nếu đến link thứ 3 thì bắt đầu click truy cập vào nhóm
-                print("Toidayroi")
-                # phải sleep
-                sleep(randint(3, 5))
-                # Tìm GroupFeed chứa tất cả các bài Post
-                try:
-                    wait7 = WebDriverWait(i, 10)
-                    GroupFeed = wait7.until(
-                        EC.visibility_of_element_located
-                        ((By.XPATH, read_xpath.GroupFeed)))
-                except:
-                    wait7 = WebDriverWait(i, 10)
-                    GroupFeed = wait7.until(
-                        EC.visibility_of_element_located
-                        ((By.XPATH, read_xpath.GroupPreview)))
-                print('passsssssss1x')
-                # Lướt xuống để bot thấy được lượng bài post nhất định
-                # Tạo đối tượng ActionChains
-                actions = ActionChains(browser)
-                # Cuộn trang web xuống
-                actions.send_keys(Keys.PAGE_DOWN).perform()
-                actions.send_keys(Keys.PAGE_DOWN).perform()
-                actions.send_keys(Keys.PAGE_DOWN).perform()
+                #access to group
+                browser.get(group)
                 sleep(5)
-                wait9 = WebDriverWait(GroupFeed, 10)
-                feedx = wait9.until(
-                    EC.presence_of_all_elements_located
-                    ((By.XPATH, read_xpath.PostsContainer)))
-                print('passsssssss1x')
-                print(f'thuc su co may: {len(feedx)}')
-                izzz = 1
-                for i in feedx:
-                    print(izzz)
-                    if izzz == 3:
-                        break
-                    print(f'thuc su co may: {i.text}')
-                    try:
-                        sleep(randint(5, 6))
-                        browser.execute_script("arguments[0].scrollIntoView({block: 'end'});", i)
-                        browser.implicitly_wait(10)
-                        commentDe0 = i.find_element(By.XPATH, read_xpath.CommentButton)
-                        browser.execute_script("arguments[0].click();", commentDe0)
-                        browser.implicitly_wait(10)
-                        commentDe = i.find_element(By.XPATH, read_xpath.CommentBox)
-                        commentDe.send_keys(Comment)
-                        sleep(randint(5, 6))
-                        commentDe.send_keys(Keys.RETURN)
-                        print("Dacomment")
-                        sleep(randint(12, 15))
-                        with open("logGroupComment.txt", "a") as file:
-                            file.write(f"So like: {izzz} \nLink: {href}")
-                        izzz += 1
-                        # Lấy Xpath Restricted POST
-                        try:
-                            browser.implicitly_wait(5)
-                            restricted = browser.find_element(By.XPATH, read_xpath.RestrictedPost)
-                            print("Restricted")
-                            try:
-                                browser.implicitly_wait(5)
-                                close = browser.find_element(By.XPATH,
-                                                                read_xpath.CloseAdPopupVi).click()
-                            except:
-                                try:
-                                    browser.implicitly_wait(5)
-                                    close = browser.find_element(By.XPATH,
-                                                                    read_xpath.CloseAdPopupEn).click()
-                                except:
-                                    print("khong popup quangcao")
-                                # Suspend 1 hours, do other thing before break
+                
+                browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                for i in range(5):  # Process 5 posts on the peek
+                    # croll to last
+                    time.sleep(5)
+                    #find post list
+                    posts = browser.find_elements(By.XPATH, "//div[contains(@class, 'feed-shared-update-v2__control-menu-container')]")
+                    if len(posts) > 0:
+                        for post in posts:
+                            commentButton = post.find_element(By.XPATH, './/button[@aria-label="Bình luận"]')
+                            ActionChains(browser).move_to_element(commentButton).click(commentButton).perform()
+                            sleep(5)
 
-                                # Do any else
-                                interval_minutes = 5
-                                ack_suspension_hours = 1
-                                suspension_duration = ack_suspension_hours * 3600  # Chuyển đổi thời gian treo thành giây
-                                interval_duration = interval_minutes * 60  # Chuyển đổi khoảng thời gian kiểm tra thành giây
-                                # Wait for the specified interval and check if 2 hours have passed
-                                elapsed_time = 0
-                                while elapsed_time < suspension_duration:
-                                    print("Checking after every {} minutes...".format(interval_minutes))
-                                    time.sleep(interval_duration)
-                                    elapsed_time += interval_duration
-                                # Break
-                        except:
-                            try:
-                                browser.implicitly_wait(5)
-                                restricted = browser.find_element(By.XPATH,
-                                                                    read_xpath.RestrictedAll)
-                                print("Restricted All")
-                                try:
-                                    browser.implicitly_wait(5)
-                                    close = browser.find_element(By.XPATH,
-                                                                    read_xpath.CloseAdPopupVi).click()
-                                except Exception as e:
-                                    print(f"khong popup quang cao: {e}")
-                                    try:
-                                        browser.implicitly_wait(5)
-                                        close = browser.find_element(By.XPATH,
-                                                                        read_xpath.CloseAdPopupEn).click()
-                                    except Exception as e:
-                                        print(f"khong popup quang cao: {e}")
-                                    # Suspend 1 hours, do other thing before break
-                                    # Do any else
-                                    interval_minutes = 5
-                                    ack_suspension_hours = 1
-                                    suspension_duration = ack_suspension_hours * 3600  # Chuyển đổi thời gian treo thành giây
-                                    interval_duration = interval_minutes * 60  # Chuyển đổi khoảng thời gian kiểm tra thành giây
-                                    # Wait for the specified interval and check if 2 hours have passed
-                                    elapsed_time = 0
-                                    while elapsed_time < suspension_duration:
-                                        print("Checking after every {} minutes...".format(interval_minutes))
-                                        time.sleep(interval_duration)
-                                        elapsed_time += interval_duration
-                            except Exception as e:
-                                print(f"No Restrict: {e}")
-                    except Exception as e:
-                        print(e)
-                        print("chua Comment")
-                        break
+                            commentIn = WebDriverWait(post, 10).until(EC.visibility_of_element_located((By.XPATH, './/div[contains(@class,"ql-editor")]')))
+                            commentIn.send_keys(comment)
+                            sleep(5)
 
-                    sleep(randint(2, 3))
+                            submitButton = post.find_element(By.XPATH, ".//button[contains(@class, 'comments-comment-box__submit-button')]")
+                            submitButton.click()
+                            sleep(5)
+                            print("commented ")
             except Exception as e:
-                try:
-                    wait6 = WebDriverWait(i, 10)  # Maximum wait time of 10 seconds
-                    eachGroup = wait6.until(
-                        EC.element_to_be_clickable((By.XPATH, read_xpath.ClickGroup)))
-                    eachGroup.click()
-                    print('passsssssss2x')
-                    # dosomething
-                    # Check popup "Rời khỏi Trang"
-                    try:
-                        browser.implicitly_wait(5)
-                        close = browser.find_element(By.XPATH, read_xpath.LeavePagePopupVi).click()
-                    except:
-                        try:
-                            browser.implicitly_wait(5)
-                            close = browser.find_element(By.XPATH, read_xpath.LeavePagePopupEn).click()
-                        except:
-                            print("khong popup leave page")
+                print("unable to connect to group error ", e)
 
-                    # dosomethings
-                    sleep(randint(5, 10))
-                    # Check popup "Quảng cáo"
-                    try:
-                        browser.implicitly_wait(5)
-                        close = browser.find_element(By.XPATH, read_xpath.CloseAdPopupVi).click()
-                    except:
-                        try:
-                            browser.implicitly_wait(5)
-                            close = browser.find_element(By.XPATH, read_xpath.CloseAdPopupEn).click()
-                        except:
-                            print("khong popup quang cao")
-                    # nếu đến link thứ 3 thì bắt đầu click truy cập vào nhóm
-                    print("Toidayroi")
-                    # phải sleep
-                    sleep(randint(3, 5))
-                    # Tìm GroupFeed chứa tất cả các bài Post
-                    try:
-                        wait7 = WebDriverWait(i, 10)
-                        GroupFeed = wait7.until(
-                            EC.visibility_of_element_located((By.XPATH, read_xpath.GroupFeed)))
-                    except:
-                        wait7 = WebDriverWait(i, 10)
-                        GroupFeed = wait7.until(
-                            EC.visibility_of_element_located((By.XPATH, read_xpath.GroupPreview)))
-                    print('passsssssss1x')
-                    # Lướt xuống để bot thấy được lượng bài post nhất định
-                    # Tạo đối tượng ActionChains
-                    actions = ActionChains(browser)
-                    # Cuộn trang web xuống
-                    actions.send_keys(Keys.PAGE_DOWN).perform()
-                    actions.send_keys(Keys.PAGE_DOWN).perform()
-                    actions.send_keys(Keys.PAGE_DOWN).perform()
-                    sleep(5)
-
-                    wait9 = WebDriverWait(GroupFeed, 10)
-                    feedx = wait9.until(
-                        EC.presence_of_all_elements_located
-                        ((By.XPATH, read_xpath.PostsContainer)))
-                    print('passsssssss1x')
-                    print(f'thuc su co may: {len(feedx)}')
-                    izzz = 1
-                    for i in feedx:
-                        print(f'thuc su co may: {i.text}')
-                        if i == 3:
-                            break
-                        print(f'thuc su co may: {i.text}')
-                        try:
-                            sleep(randint(5, 6))
-                            browser.execute_script("arguments[0].scrollIntoView({block: 'end'});", i)
-                            browser.implicitly_wait(10)
-                            commentDe = i.find_element(By.XPATH, read_xpath.CommentPublic)
-                            commentDe.send_keys(Comment)
-                            sleep(randint(5, 6))
-                            commentDe.send_keys(Keys.RETURN)
-                            print("Dacomment")
-                            sleep(randint(12, 15))
-                            with open("logGroupComment.txt", "a") as file:
-                                file.write(f"So like: {izzz} \nLink: {href}")
-                            izzz += 1
-                        except Exception as e:
-                            print(e)
-                            print("chuaComment")
-                            sleep(randint(2, 3))
-                except:
-                    print('notpasssssssssx')
-                    break
-        ez += 1
-
-def robotLike(browser, groupLink, accountLike):
-    try:
-        wait7 = WebDriverWait(groupLink, 10)
-        GroupFeed = wait7.until(
-            EC.visibility_of_element_located
-            ((By.XPATH, read_xpath.GroupFeed)))
-    except:
-        wait7 = WebDriverWait(groupLink, 10)
-        GroupFeed = wait7.until(
-            EC.visibility_of_element_located
-            ((By.XPATH, read_xpath.GroupPreview)))
-    print('passsssssss1x')
-
-    # Lướt xuống để bot thấy được lượng bài post nhất định
-    # Tạo đối tượng ActionChains
-    actions = ActionChains(browser)
-    listFeedResult = []
-    numberPost = True
-    while numberPost:
-
-        # Cuộn trang web xuống
-        actions.send_keys(Keys.PAGE_DOWN).perform()
-        sleep(5)
-
-        wait9 = WebDriverWait(GroupFeed, 10)
-        listFeed = wait9.until(
-            EC.presence_of_all_elements_located
-            ((By.XPATH, read_xpath.PostsContainer)))
-        print('passsssssss1x')
-        print(f'thuc su co may: {len(listFeed)}')
-        #Cuộn đến bài đăng cuối
-        browser.execute_script("arguments[0].scrollIntoView({block: 'center'});", listFeed[len(listFeed)-1])
-
-        if len(listFeed)-5>=0:
-            try:
-
-                browser.implicitly_wait(5)
-                likeDe = listFeed[len(listFeed)-1].find_element(By.XPATH, '//*[@class="xq8finb x16n37ib"]')
-                browser.implicitly_wait(5)
-                unlike = likeDe.find_element(By.XPATH, '//div[@aria-label="Gỡ Thích" and @role="button"]')
-
-                #browser.execute_script("arguments[0].click();", likeDe)
-                print("Cuộn tiếp")
-            except:
-                try:
-                    browser.implicitly_wait(5)
-                    likeDe2 = listFeed[len(listFeed) - 1].find_element(By.XPATH, '//*[@class="xq8finb x16n37ib"]')
-                    browser.implicitly_wait(5)
-                    unlike = likeDe2.find_element(By.XPATH, '//div[@aria-label="Remove Like" and @role="button"]')
-                    #browser.execute_script("arguments[0].click();", likeDe)
-                    print("Cuộn tiếp")
-                except:
-                    try:
-                        browser.execute_script("arguments[0].scrollIntoView({block: 'center'});",
-                                               listFeed[len(listFeed) - 5])
-                        browser.implicitly_wait(5)
-                        likeDe = listFeed[len(listFeed) - 1].find_element(By.XPATH, '//*[@class="xq8finb x16n37ib"]')
-                        browser.implicitly_wait(5)
-                        unlike = likeDe.find_element(By.XPATH, '//div[@aria-label="Thích" and @role="button"]')
-                        #List có bài like và tối thiểu 5 bài chưa like
-                        for feed in listFeed:
-                            try:
-                                browser.implicitly_wait(5)
-                                likeDe = listFeed[len(listFeed) - 1].find_element(By.XPATH,
-                                                                                  '//*[@class="xq8finb x16n37ib"]')
-                                browser.implicitly_wait(5)
-                                unlike = likeDe.find_element(By.XPATH,
-                                                             '//div[@aria-label="Thích" and @role="button"]')
-                                listFeedResult.append(feed)
-                                if len(listFeedResult) ==5:
-                                    numberPost = False
-                                    break
-                            except:
-                                pass
-                    except:
-                        print("Cuộn tiếp")
-    demLike = 1
-
-    for like in listFeedResult:
-        sleep(5)
-        # Cuộn đến bài đăng cuối
-        browser.execute_script("arguments[0].scrollIntoView({block: 'center'});", like)
-        browser.implicitly_wait(5)
-        likeDe3 = like.find_element(By.XPATH, '//*[@class="xq8finb x16n37ib"]')
-        browser.implicitly_wait(5)
-        clickLike = likeDe3.find_element(By.XPATH, '//div[@aria-label="Thích" and @role="button"]')
-
-        browser.execute_script("arguments[0].click();", clickLike)
-        print(f"Dalike: {demLike}/5")
-        demLike+=1
-        # Lấy thời gian hiện tại
-        current_datetime = datetime.now()
-        with lock:
-            try:
-                log_save_database = Log_FacebookBot(accountLike, current_datetime,"Content",
-                                                    "Like",
-                                                    "No", groupLink.get_attribute("href"))
-                log_save_database.saveDB()
-            except Exception as e:
-                print(f"Exception: {e}")
 
 def autoLike(browser):
-    # Duyệt tất cả các nhóm
-    wait4 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
-    clickGroup = wait4.until(EC.element_to_be_clickable((By.XPATH, read_xpath.GroupsTab)))
-    clickGroup.click()
-    sleep(5)
-    wait5 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
-    clickGroup = wait5.until(
-        EC.element_to_be_clickable((By.XPATH, read_xpath.JoinedGroups)))
-    clickGroup.click()
-    sleep(5)
-    # Cuộn xuống tìm tất cả thẻ
-    try:
-        print('access to scrollbar1')
-        i = 0
-        while i < 10:
-            # Cuộn xuống
-            browser.find_element(By.TAG_NAME, 'body').send_keys(Keys.END)
-            # Chờ một chút để trang cuộn xuống
-            print("xuống cuối1")
-            sleep(2)
-            i += 1
-    except:
-        print('cannot access to scrollbar1')
+    waitfor = WebDriverWait(browser, 10) # wait for maximum is 10 sec
 
-    # Lấy tất cả các nhóm
-    print("div to 1")
-    wait = WebDriverWait(browser, 10)
-    elementTo = wait.until(
-        EC.visibility_of_element_located(
-            (By.XPATH, read_xpath.GroupList)))
-    print("div to 1 into")
-    browser.implicitly_wait(10)
-    element = elementTo.find_elements(By.XPATH, read_xpath.GroupLinks)
-    print(f"Tong so link: {len(element)}")
-    for i in element:
-        href = i.get_attribute("href")
-        print(f"ban oi: {href}")
-    # Duyệt từng nhóm.
-    ez = 0
-    sleep(randint(5, 7))
-    for i in element:
-        if ez >2:
+    last_height = browser.execute_script("return document.body.scrollHeight")
+
+    while True:
+        # croll to last
+        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+        time.sleep(5)
+        #find post list
+        post_list = waitfor.until(EC.visibility_of_element_located((By.XPATH, "//div[contains(@data-id, 'urn:li:activity:')]")))
+        posts = post_list.find_elements(By.XPATH, "//div[contains(@data-id, 'urn:li:activity:')]")
+        print(len(posts))
+        # manipulate with each post
+        for post in posts:
             try:
-                    href = i.get_attribute("href")
-                    print(f"ban oi: {href}")
-                    # click từng link vào nhóm
-                    wait6 = WebDriverWait(i, 30)  # Maximum wait time of 10 seconds
-                    eachGroup = wait6.until(
-                            EC.element_to_be_clickable((By.XPATH, read_xpath.ClickGroup)))
-                    eachGroup.click()
-                    print('passsssssss1x')
-
-                    # Check popup "Rời khỏi Trang"
-                    try:
-                        browser.implicitly_wait(5)
-                        close = browser.find_element(By.XPATH,
-                                                    read_xpath.LeavePagePopupVi).click()
-                    except:
-                        try:
-                            browser.implicitly_wait(5)
-                            close = browser.find_element(By.XPATH,
-                                                        read_xpath.LeavePagePopupEn).click()
-                        except:
-                            print("khong popup leavepage")
-
-                    # dosomethings
-                    sleep(randint(5, 10))
-                    # Check popup "Quảng cáo"
-                    try:
-                        browser.implicitly_wait(5)
-                        close = browser.find_element(By.XPATH,
-                                                    read_xpath.CloseAdPopupVi).click()
-                    except:
-                        try:
-                            browser.implicitly_wait(5)
-                            close = browser.find_element(By.XPATH,
-                                                        read_xpath.CloseAdPopupEn).click()
-                        except:
-                            print("khong popup quangcao")
-                    # nếu đến link thứ 3 thì bắt đầu click truy cập vào nhóm
-                    print("Toidayroi")
-                    # phải sleep
-                    sleep(randint(3, 5))
-                    # Tìm GroupFeed chứa tất cả các bài Post
-                    try:
-                        wait7 = WebDriverWait(i, 10)
-                        GroupFeed = wait7.until(
-                            EC.visibility_of_element_located
-                            ((By.XPATH, read_xpath.GroupFeed)))
-                    except:
-                        wait7 = WebDriverWait(i, 10)
-                        GroupFeed = wait7.until(
-                            EC.visibility_of_element_located
-                            ((By.XPATH, read_xpath.GroupPreview)))
-                    print('passsssssss1x')
-                    # Lướt xuống để bot thấy được lượng bài post nhất định
-                    # Tạo đối tượng ActionChains
-                    actions = ActionChains(browser)
-                    # Cuộn trang web xuống
-                    actions.send_keys(Keys.PAGE_DOWN).perform()
-                    sleep(1)
-                    actions.send_keys(Keys.PAGE_DOWN).perform()
-                    sleep(1)
-                    actions.send_keys(Keys.PAGE_DOWN).perform()
-                    sleep(5)
-
-                    wait9 = WebDriverWait(GroupFeed, 10)
-                    feedx = wait9.until(
-                        EC.presence_of_all_elements_located
-                        ((By.XPATH, read_xpath.PostsContainer)))
-                    print('passsssssss1x')
-                    print(f'thuc su co may: {len(feedx)}')
-                    izzz =1
-                    for i in feedx:
-                        print(f'thuc su co may: {i.text}')
-                        try:
-                            sleep(randint(5, 6))
-                            browser.execute_script("arguments[0].scrollIntoView({block: 'center'});", i)
-
-                            try:
-                                browser.implicitly_wait(5)
-                                likeDe = i.find_element(By.XPATH, read_xpath.LikeButton)
-                                browser.execute_script("arguments[0].click();", likeDe)
-                                print("Dalike1")
-
-                            except:
-                                browser.implicitly_wait(5)
-                                likeDe = i.find_element(By.XPATH, read_xpath.LikeButton)
-                                browser.execute_script("arguments[0].click();", likeDe)
-                                print("Dalike2")
-
-
-                            with open("logGroupLike.txt", "a") as file:
-                                file.write(f"So like: {izzz} \nLink: {href}")
-                            izzz+=1
-
-                            # Lấy Xpath Restricted POST
-                            try:
-                                browser.implicitly_wait(5)
-                                restricted = browser.find_element(By.XPATH, read_xpath.RestrictedPost)
-                                print("Restricted")
-
-                                try:
-                                    browser.implicitly_wait(5)
-                                    close = browser.find_element(By.XPATH,
-                                                                read_xpath.CloseAdPopupVi).click()
-                                except:
-                                    try:
-                                        browser.implicitly_wait(5)
-                                        close = browser.find_element(By.XPATH,
-                                                                        read_xpath.CloseAdPopupEn).click()
-                                    except:
-                                        print("khong popup quangcao")
-                                # Suspend 1 hours, do other thing before break
-                                # Do any else
-                                interval_minutes = 5
-                                ack_suspension_hours = 1
-                                suspension_duration = ack_suspension_hours * 3600  # Chuyển đổi thời gian treo thành giây
-                                interval_duration = interval_minutes * 60  # Chuyển đổi khoảng thời gian kiểm tra thành giây
-                                # Wait for the specified interval and check if 2 hours have passed
-                                elapsed_time = 0
-                                while elapsed_time < suspension_duration:
-                                    print("Checking after every {} minutes...".format(interval_minutes))
-                                    time.sleep(interval_duration)
-                                    elapsed_time += interval_duration
-                                # Break
-                            except:
-                                try:
-                                    browser.implicitly_wait(5)
-                                    restricted = browser.find_element(By.XPATH,
-                                                                        read_xpath.RestrictedAll)
-                                    print("Restricted All")
-                                    try:
-                                        browser.implicitly_wait(5)
-                                        close = browser.find_element(By.XPATH,
-                                                                    read_xpath.CloseAdPopupVi).click()
-                                    except Exception as e:
-                                        print(f"khong popup quangcao: {e}")
-                                        try:
-                                            browser.implicitly_wait(5)
-                                            close = browser.find_element(By.XPATH,
-                                                                            read_xpath.CloseAdPopupEn).click()
-                                        except Exception as e:
-                                            print(f"khong popup quangcao: {e}")
-                                    # Suspend 1 hours, do other thing before break
-                                    # Do any else
-                                    interval_minutes = 5
-                                    ack_suspension_hours = 1
-                                    suspension_duration = ack_suspension_hours * 3600  # Chuyển đổi thời gian treo thành giây
-                                    interval_duration = interval_minutes * 60  # Chuyển đổi khoảng thời gian kiểm tra thành giây
-                                    # Wait for the specified interval and check if 2 hours have passed
-                                    elapsed_time = 0
-                                    while elapsed_time < suspension_duration:
-                                        print("Checking after every {} minutes...".format(interval_minutes))
-                                        time.sleep(interval_duration)
-                                        elapsed_time += interval_duration
-                                except Exception as e:
-                                    print(f"No Restrict: {e}")
-                        except Exception as e:
-                            print(e)
-                            print("chuaLike")
-                            break
-
-                        sleep(randint(2, 3))
+                # Cuộn bài viết vào tầm nhìn
+                ActionChains(browser).move_to_element(post).perform()
+                time.sleep(randint(5, 12))
+                
+                # Tìm nút like trong bài viết
+                like_button = post.find_element(By.XPATH, ".//button[contains(@class, 'artdeco-button') and contains(@aria-label, 'Thích')]")
+                
+                # Kiểm tra nếu chưa like
+                if 'active' not in like_button.get_attribute("class"):
+                    like_button.click()
+                    print("Đã like bài viết:", post.get_attribute("data-id"))
+                    time.sleep(randint(5, 12))
             except Exception as e:
-                    try:
-                        wait6 = WebDriverWait(i, 10)  # Maximum wait time of 10 seconds
-                        eachGroup = wait6.until(
-                            EC.element_to_be_clickable((By.XPATH, read_xpath.ClickGroup)))
-                        eachGroup.click()
-                        print('passsssssss2x')
-                        # dosomething
-                        # Check popup "Rời khỏi Trang"
-                        try:
-                            browser.implicitly_wait(5)
-                            close = browser.find_element(By.XPATH,
-                                                        read_xpath.LeavePagePopupVi).click()
-                        except:
-                            try:
-                                browser.implicitly_wait(5)
-                                close = browser.find_element(By.XPATH,
-                                                            read_xpath.LeavePagePopupEn).click()
-                            except:
-                                print("khong popup leavepage")
+                print("Lỗi khi like bài viết:", str(e))
 
-                        # dosomethings
-                        sleep(randint(5, 10))
-                        # Check popup "Quảng cáo"
-                        try:
-                            browser.implicitly_wait(5)
-                            close = browser.find_element(By.XPATH,
-                                                        f"read_xpath.CloseAdPopupVi").click()
-                        except:
-                            try:
-                                browser.implicitly_wait(5)
-                                close = browser.find_element(By.XPATH,
-                                                            read_xpath.CloseAdPopupEn).click()
-                            except:
-                                print("khong popup quangcao")
-                        # nếu đến link thứ 3 thì bắt đầu click truy cập vào nhóm
-                        print("Toidayroi")
-                        # phải sleep
-                        sleep(randint(3, 5))
-                        # Tìm GroupFeed chứa tất cả các bài Post
-                        try:
-                            wait7 = WebDriverWait(i, 10)
-                            GroupFeed = wait7.until(
-                                EC.visibility_of_element_located
-                                ((By.XPATH, read_xpath.GroupFeed)))
-                        except:
-                            wait7 = WebDriverWait(i, 10)
-                            GroupFeed = wait7.until(
-                                EC.visibility_of_element_located
-                                ((By.XPATH, read_xpath.GroupPreview)))
-                        print('passsssssss1x')
-                        # Lướt xuống để bot thấy được lượng bài post nhất định
-                                                # Tạo đối tượng ActionChains
-                        actions = ActionChains(browser)
-                        # Cuộn trang web xuống
-                        actions.send_keys(Keys.PAGE_DOWN).perform()
-                        actions.send_keys(Keys.PAGE_DOWN).perform()
-                        actions.send_keys(Keys.PAGE_DOWN).perform()
-                        sleep(5)
-                        wait9 = WebDriverWait(GroupFeed, 10)
-                        feedx = wait9.until(
-                            EC.presence_of_all_elements_located
-                            ((By.XPATH, read_xpath.PostsContainer)))
-                        print('passsssssss1x')
-                        print(f'thuc su co may: {len(feedx)}')
-                        for i in feedx:
-                            print(f'thuc su co may: {i.text}')
-                            try:
-                                browser.execute_script("arguments[0].scrollIntoView({block: 'end'});", i)
-                                sleep(randint(5, 6))
-                                browser.implicitly_wait(10)
-                                likeDe = i.find_element(By.XPATH,'//div[@aria-label="Thích" and @role="button"]')
-                                browser.execute_script("arguments[0].click();", likeDe)
-                                print("Dalike")
-                            except Exception as e:
-                                print(e)
-                                print("chuaLike")
-                                break
-                            sleep(randint(2, 3))
-                    except:
-                        print('notpasssssssssx')
-                        break
-        ez+=1
+        new_height = browser.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
 
 def autoShare(browser):
         # Duyệt tất cả các nhóm
@@ -1661,479 +969,143 @@ def autoShare(browser):
                             print('notpasssssssssx')
                             break
             ez+=1
+#done
+def post_to_linkedin(browser, account, postContent):
+    sleep(10)
+    browser.get("https://www.linkedin.com/groups/")
+    href_links = browser.find_elements(By.XPATH, "//a[contains(@class, 'group-listing-item__title-link')]")
+    links = []  # Đổi tên biến từ 'link' thành 'links' để tránh bị ghi đè
 
-def post2(browser, account, postContent):
-        # Duyệt tất cả các nhóm
-        wait4 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
-        clickGroup = wait4.until(EC.element_to_be_clickable((By.XPATH, read_xpath.GroupsTab)))
-        clickGroup.click()
-        print('passs')
-        sleep(5)
-        wait5 = WebDriverWait(browser, 10)  # Maximum wait time of 10 seconds
-        clickGroup = wait5.until(
-            EC.element_to_be_clickable((By.XPATH, read_xpath.JoinedGroups)))
-        clickGroup.click()
-        sleep(5)
-        # Cuộn xuống tìm tất cả thẻ
-        try:
-            print('access to scrollbar1')
-            i = 0
-            while i < 10:
-                # Cuộn xuống
-                browser.find_element(By.TAG_NAME, 'body').send_keys(Keys.END)
-                # Chờ một chút để trang cuộn xuống
-                print("xuống cuối1")
-                sleep(2)
-                i += 1
-        except:
-            print('cannot access to scrollbar1')
+    for element in href_links:
+        links.append(str(element.get_attribute('href')))  # Thêm URL của mỗi nhóm vào danh sách 'links'
+        
+    print(links)  # In ra danh sách các liên kết
 
-        # Lấy tất cả các nhóm
-        print("div to 1")
-        wait = WebDriverWait(browser, 10)
-        elementTo = wait.until(
-            EC.visibility_of_element_located(
-                (By.XPATH, read_xpath.GroupList)))
-        print("div to 1 into")
-        browser.implicitly_wait(10)
-        element = elementTo.find_elements(By.XPATH, read_xpath.GroupLinks)
-        print(f"Tong so link: {len(element)}")
-        for i in element:
-            href = i.get_attribute("href")
-            print(f"ban oi: {href}")
-        # Duyệt từng nhóm.
-        ez = 0
-        sleep(randint(5, 7))
-        for i in range(ez,len(element)):
-            if ez >2:
+    
+    wait = WebDriverWait(browser, 30)
+    if not links:
+        print("you're not in any group, try to search and add some group")
+        return
+    else:
+        # post to group
+        for group in links:
+            try:
+                #access to group
+                browser.get(group)
+                sleep(5)
+
+                postButton = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text() = 'Start a public post']")))
+                postButton.click()
+                sleep(5)
+                #find pop up
+                postPopUp = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class = 'share-box']")))
+                sleep(randint(2,5))
+                print("found share box")
+                #find post text
                 try:
-                        href = element[i].get_attribute("href")
-                        print(f"ban oi: {href}")
-                        if openFile(href):
-                            # click từng link vào nhóm
-                            wait6 = WebDriverWait(element[i], 30)  # Maximum wait time of 10 seconds
-                            eachGroup = wait6.until(
-                                    EC.element_to_be_clickable((By.XPATH, read_xpath.ClickGroup)))
-                            eachGroup.click()
-                            print('passsssssss1x')
+                    postInput = postPopUp.find_element(By.XPATH, "//div[contains(@class, 'ql-editor')]").send_keys(postContent)
+                    sleep(randint(5, 12))# stop to avoid web's scan
+                    print("sended: " + postContent)
+                    #nhan nut dang bai
+                    postButton = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'share-actions__primary-action')]")))
+                    postButton.click()
+                    print("posted")
+                    sleep(randint(1, 5))
 
-                            # Check popup "Rời khỏi Trang"
-                            try:
-                                browser.implicitly_wait(5)
-                                close = browser.find_element(By.XPATH,
-                                                            read_xpath.LeavePagePopupVi).click()
-                            except:
-                                try:
-                                    browser.implicitly_wait(5)
-                                    close = browser.find_element(By.XPATH,
-                                                                read_xpath.LeavePagePopupEn).click()
-                                except:
-                                    print("khong popup leavepage")
-                            # dosomethings
-                            sleep(randint(5, 7))
-                            # Check popup "Quảng cáo"
-                            try:
-                                browser.implicitly_wait(5)
-                                close = browser.find_element(By.XPATH,
-                                                            f"read_xpath.CloseAdPopupVi").click()
-                            except:
-                                try:
-                                    browser.implicitly_wait(5)
-                                    close = browser.find_element(By.XPATH,
-                                                                read_xpath.CloseAdPopupEn).click()
-                                except:
-                                    print("khong popup quangcao")
-                                # nếu đến link thứ 3 thì bắt đầu click truy cập vào nhóm
-                            try:
-                                    try:
-                                        #dosomethings
-                                        # Cuộn trang web xuống
-                                        browser.implicitly_wait(60)
-                                        post = browser.find_element(By.XPATH, '//span[contains(text(), "Bạn viết gì đi...")]').click()
-                                        sleep(randint(10, 15))
-                                        sendText = WebDriverWait(browser, 60)
-                                        #'<div class="_1p1v " id="placeholder-4mtoc" style="white-space: pre-wrap;">Tạo bài viết công khai...</div>'
-                                        # Đợi phần tử hiển thị và gán nó vào biến
-                                        post_content = sendText.until(EC.visibility_of_element_located((By.XPATH,
-                                        '/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div/div[1]/form/div/div[1]/div/div/div[1]/div/div[2]/div[1]/div[1]/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div')))
+                    # Chờ đợi thẻ thông báo hiển thị sau khi đăng bài
+                    try:
+                        feedbackMessage = WebDriverWait(postPopUp, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@class='artdeco-inline-feedback__message']")))
+                        if feedbackMessage.is_displayed():
+                            # Nếu thẻ đã hiển thị, nhấn nút Hủy bỏ (hoặc thực hiện các hành động khác)
+                            exitPopButton = WebDriverWait(postPopUp, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@aria-label="Hủy bỏ"]'))).click()
+                            sleep(5)
+                            print("Thẻ thông báo xuất hiện, đã hủy bỏ.")
 
-                                        # Sử dụng phương thức send_keys để gửi văn bản
-                                        post_content.send_keys(postContent)
-                                        print("Da sendkeys")
-                                        sleep(randint(10, 15))
-                                        wPost = WebDriverWait(browser, 60)  # Maximum wait time of 10 seconds
-                                        Post = wPost.until(EC.element_to_be_clickable(
-                                            (By.XPATH, '//span[text()="Đăng"]')))
-                                        Post.click()
-                                        print("Da nhan post")
-                                        sleep(randint(5, 7))
-                                    except Exception as e:
-                                        print(f"Error with {e}")
+                            #xác nhận hủy bỏ
+                            confirmPopUp = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@role="alertdialog"]')))
+                            confirmButton = confirmPopUp.find_element(By.XPATH, '//button[@data-control-name="share_draft_discard"]')
+                            sleep(5)
+                    except Exception as e:
+                        print("Không tìm thấy thẻ thông báo: ", e)
+                except:
+                    print("da dang het content")
+            except Exception as e:
+                print("unable to connect to group error ", e)
 
-                                    #Lấy Xpath Restricted POST
-                                    try:
-                                        browser.implicitly_wait(10)
-                                        restricted = browser.find_element(By.XPATH, read_xpath.RestrictedPost)
-                                        print("Restricted")
-                                        # Lấy thời gian hiện tại
-                                        current_datetime = datetime.now()
-                                        with lock:
-                                            try:
-                                                log_save_database = Log_FacebookBot(account, current_datetime,"Content",
-                                                                                    "POST",
-                                                                                    "No", href)
-                                                log_save_database.saveDB()
-                                            except Exception as e:
-                                                print(f"Exception: {e}")
+#done
+def search_addGroup(browser, searchKey):
+    wait = WebDriverWait(browser, 30) # wait maximum to 30 sec if there need verified  
 
-
-                                        #Tắt popup Restrict
-                                        try:
-                                            browser.implicitly_wait(5)
-                                            close = browser.find_element(By.XPATH,
-                                                                         f"read_xpath.CloseAdPopupVi").click()
-                                        except:
-                                            try:
-                                                browser.implicitly_wait(5)
-                                                close = browser.find_element(By.XPATH,
-                                                                             read_xpath.CloseAdPopupEn).click()
-                                            except:
-                                                print("khong popup restrict")
-                                        # Do any else
-                                        #Suspend 1 hours, do other thing before break
-                                        interval_minutes = 5
-                                        ack_suspension_hours = 1
-                                        suspension_duration = ack_suspension_hours * 3600  # Chuyển đổi thời gian treo thành giây
-                                        interval_duration = interval_minutes * 60  # Chuyển đổi khoảng thời gian kiểm tra thành giây
-                                        # Wait for the specified interval and check if 2 hours have passed
-                                        elapsed_time = 0
-                                        while elapsed_time < suspension_duration:
-                                            #Like/comment/share 5 nhóm, 5 bài/nhóm, nghỉ 5 phút
-                                            lcsrandom = randint(3, len(element)-1)
-
-                                            # click từng link vào nhóm
-                                            wait6 = WebDriverWait(element[lcsrandom], 30)  # Maximum wait time of 10 seconds
-                                            eachGroup = wait6.until(
-                                                EC.element_to_be_clickable(
-                                                    (By.XPATH, f'(//a[@href="{element[lcsrandom].get_attribute("href")}" and @role="link"])[1]')))
-                                            eachGroup.click()
-                                            print('passsssssss1x')
-                                            #Call like robot
-                                            #robotLike(browser,element[lcsrandom], accountLike=account)
-
-
-                                            print("Checking after every {} minutes...".format(interval_minutes))
-                                            time.sleep(interval_duration)
-                                            elapsed_time += interval_duration
-                                        #Break
-                                        ez -= 2
-
-                                    except:
-                                        try:
-                                            browser.implicitly_wait(5)
-                                            restricted = browser.find_element(By.XPATH, read_xpath.RestrictedAll)
-                                            print("Restricted All")
-                                            # Lấy thời gian hiện tại
-                                            current_datetime = datetime.now()
-                                            with lock:
-                                                try:
-                                                    log_save_database = Log_FacebookBot(account, current_datetime,"Content",
-                                                                                        "POST",
-                                                                                        "No", href)
-                                                    log_save_database.saveDB()
-                                                except Exception as e:
-                                                    print(f"Exception: {e}")
-                                            try:
-                                                browser.implicitly_wait(5)
-                                                close = browser.find_element(By.XPATH,
-                                                                             f"read_xpath.CloseAdPopupVi").click()
-                                            except Exception as e:
-                                                print(f"khong popup quangcao: {e}")
-                                                try:
-                                                    browser.implicitly_wait(5)
-                                                    close = browser.find_element(By.XPATH,
-                                                                                 read_xpath.CloseAdPopupEn).click()
-                                                except Exception as e:
-                                                    print(f"khong popup quangcao: {e}")
-                                            # Suspend 1 hours, do other thing before break
-                                            # Do any else
-                                            interval_minutes = 5
-                                            ack_suspension_hours = 1
-                                            suspension_duration = ack_suspension_hours * 3600  # Chuyển đổi thời gian treo thành giây
-                                            interval_duration = interval_minutes * 60  # Chuyển đổi khoảng thời gian kiểm tra thành giây
-                                            # Wait for the specified interval and check if 2 hours have passed
-                                            elapsed_time = 0
-                                            while elapsed_time < suspension_duration:
-                                                print("Checking after every {} minutes...".format(interval_minutes))
-                                                time.sleep(interval_duration)
-                                                elapsed_time += interval_duration
-                                            ez -= 2
-                                        except Exception as e:
-                                            print(f"No Restrict: {e}")
-                                            print("Da post")
-
-                                    # Lấy thời gian hiện tại
-                                    current_datetime = datetime.now()
-                                    with lock:
-                                        try:
-                                            log_save_database = Log_FacebookBot(account, current_datetime,"Content",
-                                                                                "POST",
-                                                                                "Yes", href)
-                                            log_save_database.saveDB()
-                                        except Exception as e:
-                                            print(f"Exception: {e}")
-                            except Exception as e:
-                                    print(f"Khong cho member post: {e}")
-                            sleep(randint(10, 15))
-                except Exception as e:
-                        try:
-                            href = element[i].get_attribute("href")
-                            if openFile(href):
-                                wait6 = WebDriverWait(element[i], 10)  # Maximum wait time of 10 seconds
-                                eachGroup = wait6.until(
-                                    EC.element_to_be_clickable((By.XPATH, read_xpath.ClickGroup)))
-                                eachGroup.click()
-                                try:
-                                    browser.implicitly_wait(5)
-                                    close = browser.find_element(By.XPATH,
-                                                                read_xpath.LeavePagePopupVi).click()
-                                except:
-                                    try:
-                                        browser.implicitly_wait(5)
-                                        close = browser.find_element(By.XPATH,
-                                                                    read_xpath.LeavePagePopupEn).click()
-                                    except:
-                                        print("khong popup leavepage")
-                                # dosomethings
-                                sleep(randint(5, 7))
-                                # Check popup "Quảng cáo"
-                                try:
-                                    browser.implicitly_wait(5)
-                                    close = browser.find_element(By.XPATH,
-                                                                f"read_xpath.CloseAdPopupVi").click()
-                                except:
-                                    try:
-                                        browser.implicitly_wait(5)
-                                        close = browser.find_element(By.XPATH,
-                                                                    read_xpath.CloseAdPopupEn).click()
-                                    except:
-                                        print("khong popup quangcao")
-                                try:
-                                    try:
-                                        # dosomethings
-                                        # Cuộn trang web xuống
-                                        browser.implicitly_wait(60)
-                                        post = browser.find_element(By.XPATH,
-                                                                    '//span[contains(text(), "Bạn viết gì đi...")]').click()
-                                        sleep(randint(10, 15))
-                                        wsendText = WebDriverWait(browser, 60)
-                                        # '<div class="_1p1v " id="placeholder-4mtoc" style="white-space: pre-wrap;">Tạo bài viết công khai...</div>'
-                                        sendText = wsendText.until(EC.visibility_of_element_located((By.XPATH,
-                                                                                                     '//div[@aria-label="Tạo bài viết công khai..." and contains(@class, "notranslate _5rpu")]')))
-                                        sendText.send_keys(postContent)
-                                        print("Da sendkeys")
-                                        sleep(randint(10, 15))
-                                        wPost = WebDriverWait(browser, 60)  # Maximum wait time of 10 seconds
-                                        Post = wPost.until(EC.element_to_be_clickable(
-                                            (By.XPATH, '//span[text()="Đăng"]')))
-                                        Post.click()
-                                        print("Da nhan post")
-                                        sleep(randint(5, 7))
-                                    except Exception as e:
-                                        print(f"Error with {e}")
-
-                                    # Lấy Xpath Restricted POST
-                                    try:
-                                        browser.implicitly_wait(5)
-                                        restricted = browser.find_element(By.XPATH, read_xpath.RestrictedPost)
-                                        print("Restricted")
-                                        # Lấy thời gian hiện tại
-                                        current_datetime = datetime.now()
-                                        with lock:
-                                            try:
-                                                log_save_database = Log_FacebookBot(account, current_datetime, "Content",
-                                                                                    "POST",
-                                                                                    "No", href)
-                                                log_save_database.saveDB()
-                                            except Exception as e:
-                                                print(f"Exception: {e}")
-
-                                        # Tắt popup Restrict
-                                        try:
-                                            browser.implicitly_wait(5)
-                                            close = browser.find_element(By.XPATH,
-                                                                         f"read_xpath.CloseAdPopupVi").click()
-                                        except:
-                                            try:
-                                                browser.implicitly_wait(5)
-                                                close = browser.find_element(By.XPATH,
-                                                                             read_xpath.CloseAdPopupEn).click()
-                                            except:
-                                                print("khong popup restrict")
-                                        # Do any else
-                                        # Suspend 1 hours, do other thing before break
-                                        interval_minutes = 5
-                                        ack_suspension_hours = 1
-                                        suspension_duration = ack_suspension_hours * 3600  # Chuyển đổi thời gian treo thành giây
-                                        interval_duration = interval_minutes * 60  # Chuyển đổi khoảng thời gian kiểm tra thành giây
-                                        # Wait for the specified interval and check if 2 hours have passed
-                                        elapsed_time = 0
-                                        while elapsed_time < suspension_duration:
-                                            # Like/comment/share 5 nhóm, 5 bài/nhóm, nghỉ 5 phút
-                                            lcsrandom = randint(3, len(element) - 1)
-
-                                            # click từng link vào nhóm
-                                            wait6 = WebDriverWait(element[lcsrandom], 30)  # Maximum wait time of 10 seconds
-                                            eachGroup = wait6.until(
-                                                EC.element_to_be_clickable(
-                                                    (By.XPATH,
-                                                     f'(//a[@href="{element[lcsrandom].get_attribute("href")}" and @role="link"])[1]')))
-                                            eachGroup.click()
-                                            print('passsssssss1x')
-                                            # Call like robot
-                                            # robotLike(browser,element[lcsrandom], accountLike=account)
-
-                                            print("Checking after every {} minutes...".format(interval_minutes))
-                                            time.sleep(interval_duration)
-                                            elapsed_time += interval_duration
-                                        # Break
-                                        ez -= 2
-
-                                    except:
-                                        try:
-                                            browser.implicitly_wait(5)
-                                            restricted = browser.find_element(By.XPATH,
-                                                                              read_xpath.RestrictedAll)
-                                            print("Restricted All")
-                                            # Lấy thời gian hiện tại
-                                            current_datetime = datetime.now()
-                                            with lock:
-                                                try:
-                                                    log_save_database = Log_FacebookBot(account, current_datetime,
-                                                                                        "Content",
-                                                                                        "POST",
-                                                                                        "No", href)
-                                                    log_save_database.saveDB()
-                                                except Exception as e:
-                                                    print(f"Exception: {e}")
-                                            try:
-                                                browser.implicitly_wait(5)
-                                                close = browser.find_element(By.XPATH,
-                                                                             f"read_xpath.CloseAdPopupVi").click()
-                                            except Exception as e:
-                                                print(f"khong popup quangcao: {e}")
-                                                try:
-                                                    browser.implicitly_wait(5)
-                                                    close = browser.find_element(By.XPATH,
-                                                                                 read_xpath.CloseAdPopupEn).click()
-                                                except Exception as e:
-                                                    print(f"khong popup quangcao: {e}")
-                                            # Suspend 1 hours, do other thing before break
-                                            # Do any else
-                                            interval_minutes = 5
-                                            ack_suspension_hours = 1
-                                            suspension_duration = ack_suspension_hours * 3600  # Chuyển đổi thời gian treo thành giây
-                                            interval_duration = interval_minutes * 60  # Chuyển đổi khoảng thời gian kiểm tra thành giây
-                                            # Wait for the specified interval and check if 2 hours have passed
-                                            elapsed_time = 0
-                                            while elapsed_time < suspension_duration:
-                                                print("Checking after every {} minutes...".format(interval_minutes))
-                                                time.sleep(interval_duration)
-                                                elapsed_time += interval_duration
-                                            ez -= 2
-                                        except Exception as e:
-                                            print(f"No Restrict: {e}")
-                                            print("Da post")
-
-                                    # Lấy thời gian hiện tại
-                                    current_datetime = datetime.now()
-                                    with lock:
-                                        try:
-                                            log_save_database = Log_FacebookBot(account, current_datetime, "Content",
-                                                                                "POST",
-                                                                                "Yes", href)
-                                            log_save_database.saveDB()
-                                        except Exception as e:
-                                            print(f"Exception: {e}")
-                                except Exception as e:
-                                    print(f"Khong cho member post: {e}")
-                                sleep(randint(10, 15))
-                        except Exception as e:
-                            print(f'notpasssssssssx: {e}')
-            ez += 1
-
-def search_addGroup(browser):
-    wait = WebDriverWait(browser, 10)  
-
-    # Tìm ô tìm kiếm và nhập từ khóa
-    search = wait.until(EC.visibility_of_element_located((By.XPATH, '//input[@placeholder="Tìm kiếm trên Facebook"]')))
-    search.clear()
-    search.send_keys("Hội phụ huynh")
-    sleep(3)
+    search = wait.until(EC.visibility_of_element_located((By.XPATH, read_xpath.searchField)))
+    search.send_keys(searchKey)
+    sleep(randint(5, 7))
+    # print("nhap duoc")
     
     # Nhấn Enter để tìm kiếm
     actions = ActionChains(browser)
     actions.move_to_element(search).send_keys(Keys.RETURN).perform()
     sleep(5)
 
-    # Nhấp vào "Xem tất cả" để mở danh sách nhóm
-    see_all_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@aria-label="Xem tất cả"]')))
-    see_all_button.click()
+    # Chờ đến khi nút nhóm nhấn được thì nhấn
+    groupButton = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='search-reusables__filters-bar']/ul/li[4]")))
+    groupButton.click()
     sleep(5)
 
     joined_count = 0  # Đếm số nhóm đã tham gia
     while True:
         try:
-            # Lấy danh sách tất cả các nút "Tham gia" hiện có
-            join_buttons = browser.find_elements(By.XPATH, '//span[contains(text(),"Tham gia")]')
+            join_buttons = browser.find_elements(By.XPATH, "//button[contains(@aria-label, 'Nối') or contains(@aria-label, 'Tham gia')]")
 
             if not join_buttons:
-                print("Không còn nhóm nào để tham gia.")
-                break  # Thoát vòng lặp nếu không còn nhóm
+                print("No groups left to join in this page")
+                #nhấn tiếp theo để tìm thêm group
+                nextButton = browser.find_element(By.XPATH, '//button[@aria-label="Tiếp theo"]')
+                if not nextButton and joined_count == 20:
+                    print("last page")
+                    break  # Exit the loop if no groups to join
+                else:
+                    nextButton.click()
+                    sleep(5)
+            else:
+                for button in join_buttons:
+                    try:
+                        if button.is_displayed() and button.is_enabled():
+                            button.click()
+                            print(f"Clicked 'Join' button for group {joined_count + 1}")
+                            joined_count += 1
+                            if joined_count == 20: # if reach the peak of maximum adding group on linkedin
+                                break
+                            sleep(randint(5, 7))  # Wait to avoid being flagged as a bot
 
-            for button in join_buttons:
-                try:
-                    if button.is_displayed() and button.is_enabled():
-                        button.click()
-                        print(f"Đã nhấp vào nút Tham gia ({joined_count + 1})")
-                        joined_count += 1
-                        sleep(5)  # Đợi để tránh bị phát hiện là bot
+                            # Handle any pop-ups (e.g., confirmation dialogs)
+                            try:
+                                close_button = WebDriverWait(browser, 3).until(
+                                    EC.element_to_be_clickable((By.XPATH, '//button[@aria-label="Close"]'))
+                                )
+                                close_button.click()
+                                print("Closed pop-up")
+                            except Exception:
+                                pass  # Ignore if there's no pop-up
 
-                        # Xử lý popup nếu có
-                        try:
-                            close_button = WebDriverWait(browser, 3).until(
-                                EC.element_to_be_clickable((By.XPATH, '//div[@aria-label="Close"]'))
-                            )
-                            close_button.click()
-                            print("Đã đóng popup")
-                        except Exception:
-                            pass  # Nếu không có popup thì bỏ qua
-
-                except Exception as e:
-                    print(f"Lỗi khi nhấp vào nút Tham gia: {e}")
-
-            # Cuộn xuống để tải thêm nhóm nếu đã tham gia 5 nhóm
-            if joined_count % 5 == 0:
-                browser.execute_script("window.scrollBy(0, document.documentElement.scrollHeight);")
-                sleep(5)
+                    except Exception as e:
+                        print(f"Error clicking 'Join' button: {e}")
 
         except Exception as e:
-            print(f"Lỗi trong vòng lặp chính: {e}")
-            break  # Nếu có lỗi nghiêm trọng, thoát vòng lặp
+            print(f"Error in main loop: {e}")
+            break  # Exit loop on serious error
 
-    print(f"Đã tham gia tổng cộng {joined_count} nhóm.")
 
-def runLoginPostLikeShareCommentReply(browser, link, account,postContent):
+def runLoginPostLikeShareCommentReply(browser, link, account, postContent, searchKey, Comment):
     loginlinkedin(browser, link, account)
-    # post_to_facebook(browser)
-    # search_addGroup(browser)
-    # post2(browser, account=account,postContent=postContent)
+
+    # search_addGroup(browser, searchKey)
+    # post_to_linkedin(browser, account, postContent)
     # autoLike(browser)
-    # autoComment(browser)
+    autoComment(browser, Comment)
     # autoReply(browser)
     # autoShare(browser)
     
-def main(postContent):
+def main(postContent, Comment):
 
     while True:
         # Thực hiện các công việc của vòng lặp ở đây
@@ -2141,7 +1113,7 @@ def main(postContent):
         threads = []
         for account in listAccount:
             browser = webdriver.Chrome(options=options)
-            thread = threading.Thread(target=runLoginPostLikeShareCommentReply, args=(browser, link, account,postContent))
+            thread = threading.Thread(target=runLoginPostLikeShareCommentReply, args=(browser, link, account,postContent, searchKey, Comment))
             thread.start()
             threads.append(thread)
         # Đợi cho tất cả các luồng hoàn thành
@@ -2156,6 +1128,6 @@ def main(postContent):
         time.sleep(1)
 
 if __name__ == '__main__':
-    post_content = create_content()
-    Comment = " vnexpress.net"
-    main(postContent=post_content)
+    postContent = create_content()
+    Comment = create_content()
+    main(postContent, Comment)

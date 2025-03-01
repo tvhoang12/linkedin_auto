@@ -5,14 +5,13 @@
     <PostButton>//div[@aria-label='Đăng' and @role='button']</PostButton>
 
     <!-- XPaths cho đăng nhập -->
-    <EmailField>//*[@id="email"]</EmailField>
-    <PasswordField>//*[@id="pass"]</PasswordField>
-    <LoginButtonEn>//button[text()='Log in']</LoginButtonEn>
-    <LoginButtonVi>//button[text()='Đăng nhập']</LoginButtonVi>
+    <EmailField>//input[@id='username']</EmailField>
+    <PasswordField>//input[@id="password"]</PasswordField>
+    <LoginButton>//button[@data-litms-control-urn='login-submit']</LoginButton>
     <!-- XPaths cho reply comment -->
     
     <!-- XPaths cho nhóm -->
-    <GroupsTab>//a[@aria-label="Nhóm"]</GroupsTab>
+    <GroupsTab>//div[contains(@class, 'artdeco-entity-lockup__content')]</GroupsTab>
     <JoinedGroups>//a[@href="/groups/joins/?nav_source=tab" and @role="link"]</JoinedGroups>
     <GroupList>//div[@aria-label='Danh sách nhóm' and @role='navigation']</GroupList>
     <GroupLinks>//div[starts-with(@class, "x9f619 x1n2onr6 x1ja2u2z")]/a</GroupLinks>
@@ -22,17 +21,23 @@
     <LeavePagePopupEn>//div[@aria-label="Leave Page" and @role="button"]</LeavePagePopupEn>
     <CloseAdPopupVi>//div[@aria-label='Đóng']</CloseAdPopupVi>
     <CloseAdPopupEn>//div[@aria-label='Close']</CloseAdPopupEn>
+
+    <!--searching-->
+    <searchField>//input[contains(@class, 'search-global-typeahead__input')]</searchField>
+
+    <!-- scroll down-->
+    <FiniteScroll>//div[@class="scaffold-finite-scroll__content"]</FiniteScroll>
     
-    <!-- XPath nut thich -->
-    <LikeButton>//div[@aria-label="Thích" and @role="button"]</LikeButton>
-    <!-- XPath nut comment-->
+    <!-- XPath of buttons -->
+    <ConnectButton>//div[@class="yyosfl1 h8e4ml0 _1xoe5hd0 _139m7k1gx _1s9oaxg7 _1s9oaxgi yyosfl4 yyosfl3 cnuthtc0 cnutht0 cnutht1i0 _1k2lxmeg _1ptbkx61go""]</ConnectButton>
+    <LikeButton>//button[contains(@class, 'react-button__trigger') and @aria-label='Thả cảm xúc Thích']</LikeButton>
     <CommentButton>//div[@aria-label='Viết bình luận' and @role='button']</CommentButton>
+    <ReplyButton>(//div[@role="button" and text()="Phản hồi"])[1]</ReplyButton>
 
     <!-- XPaths cho feed và bài post -->
     <GroupFeed>//div[@data-pagelet='GroupFeed']</GroupFeed>
     <GroupPreview>//div[@aria-label="Bản xem trước nhóm" and @role="main"]</GroupPreview>
     <PostsContainer>//*[contains(concat(' ', @class, ' '), 'x1yztbdb x1n2onr6 xh8yej3 x1ja2u2z')]</PostsContainer>
-    <ReplyButton>(//div[@role="button" and text()="Phản hồi"])[1]</ReplyButton>
     <ReplyTextArea>//div[@aria-label="Viết phản hồi công khai…"]/p/span[2]</ReplyTextArea>
     <CommentBox>//div[contains(@aria-label, "Trả lời dưới tên") or contains(@aria-label, "Bình luận dưới tên")]</CommentBox>
     <CommentPublic>//div[@aria-label="Viết bình luận công khai…"]</CommentPublic>
