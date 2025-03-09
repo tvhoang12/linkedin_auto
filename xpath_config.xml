@@ -2,7 +2,6 @@
     <!-- XPaths cho đăng bài -->
     <PostBox>/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div[2]/div/div/div/div[2]/div/div[2]/div/div/div/div[1]/div/div[1]/span</PostBox>
     <PostArea>//div[@role='textbox']</PostArea>
-    <PostButton>//div[@aria-label='Đăng' and @role='button']</PostButton>
 
     <!-- XPaths cho đăng nhập -->
     <EmailField>//input[@id='username']</EmailField>
@@ -13,9 +12,17 @@
     <!-- XPaths cho nhóm -->
     <GroupsTab>//div[contains(@class, 'artdeco-entity-lockup__content')]</GroupsTab>
     <JoinedGroups>//a[@href="/groups/joins/?nav_source=tab" and @role="link"]</JoinedGroups>
-    <GroupList>//div[@aria-label='Danh sách nhóm' and @role='navigation']</GroupList>
-    <GroupLinks>//div[starts-with(@class, "x9f619 x1n2onr6 x1ja2u2z")]/a</GroupLinks>
-    <ClickGroup>(//a[@href="{href}" and @role="link"])[1]</ClickGroup>
+    <GroupList>//a[contains(@class, 'group-listing-item__title-link')]</GroupList>
+    <confirmPopUp>//div[@role="alertdialog"]</confirmPopUp>
+    <confirmButton>//button[@data-control-name="share_draft_discard"]</confirmButton>
+    <exitPopButton>//button[@aria-label="Hủy bỏ"]</exitPopButton>
+
+    <PostButton>//span[text() = 'Start a public post']</PostButton>
+    <PostSubmitButton>//button[contains(@class, 'share-actions__primary-action')]</PostSubmitButton>
+    <FeedBack>//span[@class='artdeco-inline-feedback__message']</FeedBack>
+    <PostPopUp>//div[@class = 'share-box']</PostPopUp>
+    <PostInput>//div[contains(@class, 'ql-editor')]</PostInput>
+
     <!-- XPaths cho popups -->
     <LeavePagePopupVi>//div[@aria-label="Rời khỏi Trang" and @role="button"]</LeavePagePopupVi>
     <LeavePagePopupEn>//div[@aria-label="Leave Page" and @role="button"]</LeavePagePopupEn>
@@ -27,22 +34,13 @@
 
     <!-- scroll down-->
     <FiniteScroll>//div[@class="scaffold-finite-scroll__content"]</FiniteScroll>
+    <Post>//div[@class="artdeco-card mb2"]</Post>
     
     <!-- XPath of buttons -->
     <ConnectButton>//div[@class="yyosfl1 h8e4ml0 _1xoe5hd0 _139m7k1gx _1s9oaxg7 _1s9oaxgi yyosfl4 yyosfl3 cnuthtc0 cnutht0 cnutht1i0 _1k2lxmeg _1ptbkx61go""]</ConnectButton>
-    <LikeButton>//button[contains(@class, 'react-button__trigger') and @aria-label='Thả cảm xúc Thích']</LikeButton>
-    <CommentButton>//div[@aria-label='Viết bình luận' and @role='button']</CommentButton>
-    <ReplyButton>(//div[@role="button" and text()="Phản hồi"])[1]</ReplyButton>
+    <LikeButton>.//button[contains(@class, 'artdeco-button') and (@aria-label= 'React Like' or @aria-label= 'Thích')]</LikeButton>
+    <CommentButton>.//button[@aria-label="Bình luận" or @aria-label="Comment"]</CommentButton>
+    <CommentField></CommentField>.//div[contains(@class,"ql-editor")]</CommentField>
+    <SendCommentButton>.//button[contains(@class, 'comments-comment-box__submit-button')]</SendCommentButton>
 
-    <!-- XPaths cho feed và bài post -->
-    <GroupFeed>//div[@data-pagelet='GroupFeed']</GroupFeed>
-    <GroupPreview>//div[@aria-label="Bản xem trước nhóm" and @role="main"]</GroupPreview>
-    <PostsContainer>//*[contains(concat(' ', @class, ' '), 'x1yztbdb x1n2onr6 xh8yej3 x1ja2u2z')]</PostsContainer>
-    <ReplyTextArea>//div[@aria-label="Viết phản hồi công khai…"]/p/span[2]</ReplyTextArea>
-    <CommentBox>//div[contains(@aria-label, "Trả lời dưới tên") or contains(@aria-label, "Bình luận dưới tên")]</CommentBox>
-    <CommentPublic>//div[@aria-label="Viết bình luận công khai…"]</CommentPublic>
-
-    <!-- XPaths cho hạn chế (Restricted) -->
-    <RestrictedPost>//div[@style='display: inline;']</RestrictedPost>
-    <RestrictedAll>//span[text()='Giờ bạn chưa dùng được tính năng này']</RestrictedAll>
 </Xpaths>
